@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 
+	model "github.com/techyoichiro/jobreco/backend/domain/models"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -38,7 +39,7 @@ func ConnectionDB() (*gorm.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := db.AutoMigrate(&models.Employee{}); err != nil {
+	if err := db.AutoMigrate(&model.Employee{}); err != nil {
 		return nil, err
 	}
 	return db, nil

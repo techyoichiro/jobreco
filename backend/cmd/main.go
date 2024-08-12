@@ -8,7 +8,7 @@ import (
 	"github.com/techyoichiro/jobreco/backend/infra/database"
 	repository "github.com/techyoichiro/jobreco/backend/infra/database/repositories"
 	"github.com/techyoichiro/jobreco/backend/infra/router"
-	"github.com/techyoichiro/jobreco/backend/interface/controllers"
+	controller "github.com/techyoichiro/jobreco/backend/interface/controllers"
 	"github.com/techyoichiro/jobreco/backend/usecase/services"
 )
 
@@ -20,13 +20,13 @@ func main() {
 	}
 
 	// リポジトリの初期化
-	authRepo := repository.NewAuthRepository(db)
+	empRepo := repository.NewEmployeeRepository(db)
 
 	// サービス層の初期化
-	authService := services.NewAuthService(authRepo)
+	authService := services.NewAuthService(empRepo)
 
 	// コントローラの初期化
-	authController := controllers.NewAuthController(authService)
+	authController := controller.NewAuthController(authService)
 
 	engine := gin.Default()
 
@@ -38,7 +38,7 @@ func main() {
 	}))
 
 	// ルータの設定
-	engine = router.SetupAuthRouter(engine, authController)
+	engine = router.SetupRouter(authController)
 	// engine = router.SetupRouterPage(engine, todoController)
 
 	// サーバを8080ポートで起動

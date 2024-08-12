@@ -3,13 +3,13 @@ CREATE DATABASE jobreco_db;
 USE jobreco_db;
 
 -- 従業員テーブル（変更なし）
-CREATE TABLE employee (
-    employee_id INT AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE employees (
+    id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     login_id VARCHAR(50) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
-    role_id INT NOT NULL,
-    hourly_pay INT NOT NULL,
+    role_id INT NOT NULL DEFAULT 1,
+    hourly_pay INT NOT NULL DEFAULT 1112,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -40,7 +40,7 @@ CREATE TABLE daily_work_summarie (
     total_break_time DECIMAL(4, 2) NOT NULL DEFAULT 0, -- 総休憩時間（分）
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (employee_id) REFERENCES employee(employee_id),
+    FOREIGN KEY (employee_id) REFERENCES employees(id),
     UNIQUE KEY unique_daily_summary (employee_id, work_date)
 );
 
@@ -51,6 +51,7 @@ CREATE TABLE work_segment (
     store_id INT NOT NULL,
     start_time DATETIME NOT NULL,
     end_time DATETIME,
+    status_id int,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (summary_id) REFERENCES daily_work_summarie(summary_id),
@@ -76,7 +77,3 @@ INSERT INTO store (store_name) VALUES
 INSERT INTO role (role_name) VALUES
 ('管理者'),
 ('一般');
-
-INSERT INTO employee (name, login_id, password, role_id, hourly_pay) VALUES
-('籾井洋一郎', 'user1', 'pass', 1, 1150),
-('矢澤一晟', 'user2', 'pass', 2, 1150);
