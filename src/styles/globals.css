@@ -31,3 +31,23 @@ body {
     text-wrap: balance;
   }
 }
+
+.custom-container {
+  border-top-left-radius: 40px;  
+}
+
+.custom-input {
+  @apply w-full py-2 px-4 bg-custom-cream border-none rounded-md;
+}
+
+.custom-button {
+  @apply w-full py-2 mt-4 bg-black text-white font-bold rounded-md;
+}
+
+.custom-link {
+  @apply text-custom-green font-semibold;
+}
+
+.custom-underline {
+  text-decoration: underline;
+}

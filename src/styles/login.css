@@ -1,0 +1,12 @@
+.base-container {
+    background-color: #ddf5b9;
+}
+
+.app-container {
+    background-color: #fffeec;
+}
+
+.login-containe {
+    background-color: #007e56;
+    border-top-left-radius: 10px;
+}
