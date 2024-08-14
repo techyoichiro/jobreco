@@ -1,0 +1,29 @@
+# Goバージョン
+FROM golang:1.22.4-alpine
+
+# コンテナ内の作業ディレクトリを設定
+WORKDIR /app
+
+# 必要なパッケージをインストール
+RUN apk update && apk add --no-cache git
+
+# ローカルのソースコードをコンテナにコピー
+COPY . .
+
+# Goモジュールをダウンロード
+RUN go mod download
+
+# アプリケーションをビルド
+RUN go build -o main ./cmd/main.go
+
+# airをインストール
+RUN go install github.com/air-verse/air@latest
+
+# 公開予定のコンテナのポートを明示
+EXPOSE 8080
+
+# ホットリロードを実行する（airを使う場合）
+CMD ["air", "-c", ".air.toml"]
+
+# バイナリを直接実行する場合
+# CMD ["./main"]
