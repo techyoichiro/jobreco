@@ -30,16 +30,19 @@ func main() {
 
 	engine := gin.Default()
 
-	// CORSミドルウェアの設定
+	// CORS ミドルウェアの設定
 	engine.Use(cors.New(cors.Config{
-		AllowOrigins: []string{"http://localhost:3000"}, // NextアプリのURLを指定
-		AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders: []string{"Origin", "Content-Type", "Authorization"},
+		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		AllowCredentials: true,
 	}))
 
 	// ルータの設定
 	engine = router.SetupRouter(authController)
-	// engine = router.SetupRouterPage(engine, todoController)
+
+	// 静的ファイルの提供
+	engine.Static("/static", "./frontend/next-app/out")
 
 	// サーバを8080ポートで起動
 	if err := engine.Run(":8080"); err != nil {
