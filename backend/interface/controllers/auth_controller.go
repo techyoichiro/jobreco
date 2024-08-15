@@ -54,5 +54,10 @@ func (ac *AuthController) PostLogin(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"employee": emp})
+	c.JSON(http.StatusOK, gin.H{
+		"employee": gin.H{
+			"ID":   emp.ID,
+			"Name": emp.Name,
+		},
+	})
 }

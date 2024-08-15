@@ -31,7 +31,7 @@ CREATE TABLE store (
 ); 
 -- 日次勤怠サマリーテーブル（新規）
 CREATE TABLE daily_work_summarie (
-    summary_id INT AUTO_INCREMENT PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     employee_id INT NOT NULL,
     work_date DATE NOT NULL,
     start_time DATETIME NOT NULL,
@@ -46,8 +46,9 @@ CREATE TABLE daily_work_summarie (
 
 -- 勤務セグメントテーブル（新規）
 CREATE TABLE work_segment (
-    segment_id INT AUTO_INCREMENT PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     summary_id INT NOT NULL,
+    employee_id INT NOT NULL,
     store_id INT NOT NULL,
     start_time DATETIME NOT NULL,
     end_time DATETIME,

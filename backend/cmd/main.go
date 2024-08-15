@@ -41,9 +41,6 @@ func main() {
 	// ルータの設定
 	engine = router.SetupRouter(authController)
 
-	// 静的ファイルの提供
-	engine.Static("/static", "./frontend/next-app/out")
-
 	// サーバを8080ポートで起動
 	if err := engine.Run(":8080"); err != nil {
 		log.Fatalf("Failed to run server: %v", err)

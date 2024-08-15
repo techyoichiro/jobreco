@@ -4,33 +4,41 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import axios from 'axios';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import '../styles/globals.css';
 
 const LogIn: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
-      const response = await axios.post('http://localhost:8080/auth/login', {
-        login_id: email,
-        password: password
-      }, {
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        withCredentials: true
-      });
-      console.log('ログイン成功', response.data);
-      setError(null); // ログイン成功時にエラーをクリア
+        const response = await axios.post('http://localhost:8080/auth/login', {
+            login_id: email,
+            password: password
+        }, {
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            withCredentials: true
+        });
+
+        if (response.status === 200) {
+            console.log('ログイン成功', response.data.employee.Name);
+            localStorage.setItem('userName', response.data.employee.Name);
+            router.push('/attendance'); // ログイン成功後に attendance 画面へ遷移
+        } else {
+            setError('ログインに失敗しました。入力情報を確認してください。');
+        }
     } catch (error: any) {
-      console.error('ログインエラー:', error);
-      setError('ログインに失敗しました。入力情報を確認してください。'); // エラーメッセージを設定
+        console.error('ログインエラー:', error);
+        setError('ログインに失敗しました。入力情報を確認してください。'); // エラーメッセージを設定
     }
-  };
+};
 
   return (
     <div className="min-h-screen bg-custom-green flex items-center justify-center p-4">
@@ -51,7 +59,7 @@ const LogIn: React.FC = () => {
           {error && <p className="text-red-500 text-center mb-4">{error}</p>}
           <form onSubmit={handleLogin} className="space-y-4 flex flex-col items-center">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-white">Login ID</label>
+              <label htmlFor="email" className="block text-sm font-medium text-white">ログインID</label>
               <input 
                 type="email"
                 id="email"
@@ -62,7 +70,7 @@ const LogIn: React.FC = () => {
               />
             </div>
             <div>
-              <label htmlFor="password" className="text-sm font-medium text-white">Password</label>
+              <label htmlFor="password" className="text-sm font-medium text-white">パスワード</label>
               <input
                 type="password"
                 id="password"
@@ -74,9 +82,9 @@ const LogIn: React.FC = () => {
             </div>
             <button
               type="submit"
-              className="w-72 bg-gray-800 text-white py-2 px-4 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+              className="w-72 bg-gray-800 text-white py-2 px-4 rounded-md hover:bg-gray-700"
             >
-              Log In
+              ログイン
             </button>
           </form>
           <p className="mt-4 text-center text-sm text-white">

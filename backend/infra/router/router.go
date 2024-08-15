@@ -26,9 +26,6 @@ func SetupRouter(authController *controller.AuthController) *gin.Engine {
 	})
 
 	// router.GET("/", authController.GetTop)
-	router.GET("/auth/signup", func(c *gin.Context) {
-		c.File("../../../frontend/next-app/src/app/signup.tsx")
-	})
 	router.POST("/auth/signup", authController.PostSignup)
 	// router.GET("/auth/login", authController.GetLogin)
 	router.POST("/auth/login", authController.PostLogin)
