@@ -60,6 +60,7 @@ func (ac *AttendanceController) PostClockOut(c *gin.Context) {
 func (ac *AttendanceController) PostGoOut(c *gin.Context) {
 	var req struct {
 		EmployeeID uint `json:"employee_id"`
+		StoreID    uint `json:"store_id"`
 	}
 
 	if err := c.BindJSON(&req); err != nil {
@@ -67,7 +68,7 @@ func (ac *AttendanceController) PostGoOut(c *gin.Context) {
 		return
 	}
 
-	if err := ac.service.GoOut(req.EmployeeID); err != nil {
+	if err := ac.service.GoOut(req.EmployeeID, req.StoreID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -76,9 +77,10 @@ func (ac *AttendanceController) PostGoOut(c *gin.Context) {
 }
 
 // 戻り
-func (ac *AttendanceController) PostComeBack(c *gin.Context) {
+func (ac *AttendanceController) PostReturn(c *gin.Context) {
 	var req struct {
 		EmployeeID uint `json:"employee_id"`
+		StoreID    uint `json:"store_id"`
 	}
 
 	if err := c.BindJSON(&req); err != nil {
@@ -86,7 +88,7 @@ func (ac *AttendanceController) PostComeBack(c *gin.Context) {
 		return
 	}
 
-	if err := ac.service.Return(req.EmployeeID); err != nil {
+	if err := ac.service.Return(req.EmployeeID, req.StoreID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

@@ -68,7 +68,8 @@ CREATE TABLE break_records (
     break_end TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (summary_id) REFERENCES daily_work_summarie(summary_id)
+    deleted_at TIMESTAMP,
+    FOREIGN KEY (summary_id) REFERENCES daily_work_summaries(summary_id)
 );
 
 -- 初期投入データ

@@ -30,7 +30,7 @@ func SetupRouter(authController *controller.AuthController, attendanceController
 		attendanceRouter.POST("/clockin", attendanceController.PostClockIn)
 		attendanceRouter.POST("/clockout", attendanceController.PostClockOut)
 		attendanceRouter.POST("/goout", attendanceController.PostGoOut)
-		attendanceRouter.POST("/comeback", attendanceController.PostComeBack)
+		attendanceRouter.POST("/return", attendanceController.PostReturn)
 	}
 
 	return router

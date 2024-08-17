@@ -15,4 +15,6 @@ type AttendanceRepository interface {
 	FindWorkSegmentToReturn(employeeID uint) (*model.WorkSegment, error)
 	UpdateDailyWorkSummary(summary *model.DailyWorkSummary) error
 	CreateBreakRecord(record *model.BreakRecord) error
+	FindWorkSegmentsByDate(employeeID uint, workDate string) ([]model.WorkSegment, error)
+	UpdateBreakRecord(record *model.BreakRecord) error
 }

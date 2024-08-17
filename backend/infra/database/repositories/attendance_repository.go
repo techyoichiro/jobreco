@@ -39,7 +39,7 @@ func (r *AttendanceRepositoryImpl) FindLatestWorkSegment(employeeID uint) (*mode
 
 func (r *AttendanceRepositoryImpl) FindBreakRecords(summaryID uint) ([]model.BreakRecord, error) {
 	var breakRecords []model.BreakRecord
-	err := r.DB.Where("summary_id = ? AND break_end IS NOT NULL", summaryID).Find(&breakRecords).Error
+	err := r.DB.Where("summary_id = ? AND break_end IS NULL", summaryID).Find(&breakRecords).Error
 	return breakRecords, err
 }
 
@@ -55,4 +55,14 @@ func (r *AttendanceRepositoryImpl) UpdateDailyWorkSummary(summary *model.DailyWo
 
 func (r *AttendanceRepositoryImpl) CreateBreakRecord(record *model.BreakRecord) error {
 	return r.DB.Create(record).Error
+}
+
+func (r *AttendanceRepositoryImpl) FindWorkSegmentsByDate(employeeID uint, workDate string) ([]model.WorkSegment, error) {
+	var segments []model.WorkSegment
+	err := r.DB.Where("employee_id = ? AND DATE(start_time) = ?", employeeID, workDate).Find(&segments).Error
+	return segments, err
+}
+
+func (r *AttendanceRepositoryImpl) UpdateBreakRecord(record *model.BreakRecord) error {
+	return r.DB.Save(record).Error
 }
