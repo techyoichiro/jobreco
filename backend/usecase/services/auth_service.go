@@ -19,7 +19,7 @@ func NewAuthService(repo repositories.EmployeeRepository) *AuthService {
 
 // サインアップ
 func (s *AuthService) Signup(name, loginID, password string) (*model.Employee, error) {
-	existingEmployee, err := s.repo.FindByLoginID(loginID)
+	existingEmployee, err := s.repo.FindEmpByLoginID(loginID)
 	if err != nil {
 		log.Printf("Error finding employee by loginID: %v", err)
 		return nil, err
@@ -43,7 +43,7 @@ func (s *AuthService) Signup(name, loginID, password string) (*model.Employee, e
 		HourlyPay: 1112,
 	}
 
-	err = s.repo.Create(employee)
+	err = s.repo.CreateEmp(employee)
 	if err != nil {
 		log.Printf("Error creating employee: %v", err)
 		return nil, err
@@ -54,7 +54,7 @@ func (s *AuthService) Signup(name, loginID, password string) (*model.Employee, e
 
 // ログイン
 func (s *AuthService) Login(loginID, password string) (*model.Employee, error) {
-	emp, err := s.repo.FindByLoginID(loginID)
+	emp, err := s.repo.FindEmpByLoginID(loginID)
 	if err != nil {
 		return nil, err
 	}
@@ -68,4 +68,13 @@ func (s *AuthService) Login(loginID, password string) (*model.Employee, error) {
 	}
 
 	return emp, nil
+}
+
+// employee_id に紐づく status_id を取得
+func (s *AuthService) GetStatusByEmpID(employeeID uint) (int, error) {
+	statusID, err := s.repo.GetStatusByEmpID(employeeID)
+	if err != nil {
+		return 0, err
+	}
+	return statusID, nil
 }

@@ -7,6 +7,11 @@ WORKDIR /app
 # 必要なパッケージをインストール
 RUN apk update && apk add --no-cache git
 
+# タイムゾーン設定
+RUN apk add --no-cache tzdata && \
+    cp /usr/share/zoneinfo/Asia/Tokyo /etc/localtime && \
+    echo "Asia/Tokyo" > /etc/timezone
+
 # ローカルのソースコードをコンテナにコピー
 COPY . .
 

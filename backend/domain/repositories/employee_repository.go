@@ -6,6 +6,7 @@ import (
 
 // EmployeeRepository
 type EmployeeRepository interface {
-	FindByLoginID(loginID string) (*model.Employee, error)
-	Create(employee *model.Employee) error
+	FindEmpByLoginID(loginID string) (*model.Employee, error)
+	CreateEmp(employee *model.Employee) error
+	GetStatusByEmpID(employeeID uint) (int, error)
 }

@@ -6,29 +6,32 @@ import (
 	controller "github.com/techyoichiro/jobreco/backend/interface/controllers"
 )
 
-func SetupRouter(authController *controller.AuthController) *gin.Engine {
+// SetupRouter sets up the routes for the application.
+func SetupRouter(authController *controller.AuthController, attendanceController *controller.AttendanceController) *gin.Engine {
 	router := gin.Default()
 
 	// CORS設定を手動で追加
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:3000"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		AllowCredentials: true,
 	}))
 
-	// OPTIONSメソッドの処理を追加
-	router.OPTIONS("/auth/login", func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-		c.Status(200)
-	})
+	// ルート設定
+	authRouter := router.Group("/auth")
+	{
+		authRouter.POST("/signup", authController.PostSignup)
+		authRouter.POST("/login", authController.PostLogin)
+	}
 
-	// router.GET("/", authController.GetTop)
-	router.POST("/auth/signup", authController.PostSignup)
-	// router.GET("/auth/login", authController.GetLogin)
-	router.POST("/auth/login", authController.PostLogin)
+	attendanceRouter := router.Group("/attendance")
+	{
+		attendanceRouter.POST("/clockin", attendanceController.PostClockIn)
+		attendanceRouter.POST("/clockout", attendanceController.PostClockOut)
+		attendanceRouter.POST("/goout", attendanceController.PostGoOut)
+		attendanceRouter.POST("/comeback", attendanceController.PostComeBack)
+	}
 
 	return router
 }

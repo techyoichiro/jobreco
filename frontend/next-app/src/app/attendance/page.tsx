@@ -1,22 +1,43 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import '../../styles/globals.css';
+
+const statusMap: Record<number, string> = {
+  0: '未出勤',
+  1: '勤務中',
+  2: '外出中',
+  3: '退勤済み',
+};
+
+const storeMap: Record<number, string> = {
+  0: '我家',
+  1: 'Ate',
+};
 
 const AttendanceScreen: React.FC = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [status, setStatus] = useState('未出勤');
-  const [location, setLocation] = useState('我家');
+  const [location, setLocation] = useState('0'); // 初期値を '0' に変更
   const [userName, setUserName] = useState<string | null>(null);
+  const [statusID, setStatusID] = useState<number>(0);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
 
-    // ローカルストレージからユーザー名を取得
-    const storedName = localStorage.getItem('userName');
-    setUserName(storedName);
+    const userName = localStorage.getItem('userName');
+    const storedStatusID = localStorage.getItem('statusID');
+
+    setUserName(userName);
+
+    if (storedStatusID) {
+      const id = parseInt(storedStatusID, 10);
+      setStatusID(id);
+      setStatus(statusMap[id] || '未出勤');
+    }
 
     return () => clearInterval(timer);
   }, []);
@@ -25,8 +46,30 @@ const AttendanceScreen: React.FC = () => {
     return date.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
   };
 
-  const handleStatusChange = (newStatus: string) => {
-    setStatus(newStatus);
+  const handleStatusChange = async (Stamp: string) => {
+  
+    const storeID = parseInt(location, 10);
+    try {
+      const response = await axios.post(`http://localhost:8080/attendance/${Stamp}`, {
+        employee_id: parseInt(localStorage.getItem('empID') || "0", 10),
+        store_id: storeID, // storeID をリクエストデータに追加
+      });
+  
+      if (response.status === 200) {
+        const { data } = response;
+        setStatusID(data.statusID);  // statusID を更新
+        setStatus(statusMap[data.statusID] || '未出勤'); // statusMap からステータス名を取得
+        localStorage.setItem('statusID', data.statusID.toString()); // statusID をローカルストレージに保存
+      }
+    } catch (error) {
+      console.error('Error updating status:', error);
+    }
+  };
+
+  const getButtonClasses = (disabled: boolean) => {
+    return disabled
+      ? 'bg-gray-300 text-gray-500 border-gray-300 cursor-not-allowed'
+      : 'bg-white text-green-600 border border-green-600';
   };
 
   return (
@@ -42,41 +85,47 @@ const AttendanceScreen: React.FC = () => {
             {formatTime(currentTime)}
           </div>
           <div className="flex items-center font-bold">
-            <span>ステータス：{status}</span>
+            <span>ステータス：{statusMap[statusID]}</span>
           </div>
           <div className="mt-2">
             <select
               value={location}
-              onChange={(e) => setLocation(e.target.value)}
+              onChange={(e) =>setLocation(e.target.value)}
               className="w-1/3 p-2 text-gray-700 rounded-md"
             >
-              <option value="我家">我家</option>
-              <option value="Ate">Ate</option>
+              {Object.entries(storeMap).map(([key, value]) => (
+                <option key={key}value={key}>{value}</option>
+              ))}
             </select>
+
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4 mt-4">
           <button
-            onClick={() => handleStatusChange('出勤')}
-            className="bg-white text-green-600 border border-green-600 rounded-md py-2"
+            onClick={() => handleStatusChange('clockin')}
+            className={`rounded-md py-2 ${getButtonClasses(statusID !== 0)}`}
+            disabled={statusID !== 0}
           >
             出勤
           </button>
           <button
-            onClick={() => handleStatusChange('退勤')}
-            className="bg-white text-green-600 border border-green-600 rounded-md py-2"
+            onClick={() => handleStatusChange('clockout')}
+            className={`rounded-md py-2 ${getButtonClasses(statusID !== 1)}`}
+            disabled={statusID !== 1}
           >
             退勤
           </button>
           <button
-            onClick={() => handleStatusChange('外出')}
-            className="bg-white text-green-600 border border-green-600 rounded-md py-2"
+            onClick={() => handleStatusChange('goout')}
+            className={`rounded-md py-2 ${getButtonClasses(statusID !== 1)}`}
+            disabled={statusID !== 1}
           >
             外出
           </button>
           <button
-            onClick={() => handleStatusChange('戻り')}
-            className="bg-white text-green-600 border border-green-600 rounded-md py-2"
+            onClick={() => handleStatusChange('return')}
+            className={`rounded-md py-2 ${getButtonClasses(statusID !== 2)}`}
+            disabled={statusID !== 2}
           >
             戻り
           </button>

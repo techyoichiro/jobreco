@@ -15,7 +15,7 @@ CREATE TABLE employees (
 );
 
 -- 権限（ロール）テーブル（変更なし）
-CREATE TABLE role (
+CREATE TABLE roles (
     role_id INT AUTO_INCREMENT PRIMARY KEY,
     role_name VARCHAR(50) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -23,19 +23,19 @@ CREATE TABLE role (
 );
 
 -- 店舗テーブル（変更なし）
-CREATE TABLE store (
+CREATE TABLE stores (
     store_id INT AUTO_INCREMENT PRIMARY KEY,
     store_name VARCHAR(100) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ); 
 -- 日次勤怠サマリーテーブル（新規）
-CREATE TABLE daily_work_summarie (
+CREATE TABLE daily_work_summaries (
     id INT AUTO_INCREMENT PRIMARY KEY,
     employee_id INT NOT NULL,
     work_date DATE NOT NULL,
-    start_time DATETIME NOT NULL,
-    end_time DATETIME ,
+    start_time TIMESTAMP NOT NULL,
+    end_time TIMESTAMP ,
     total_work_time DECIMAL(4, 2) NOT NULL DEFAULT 0, -- 総勤務時間（分）
     total_break_time DECIMAL(4, 2) NOT NULL DEFAULT 0, -- 総休憩時間（分）
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -45,26 +45,27 @@ CREATE TABLE daily_work_summarie (
 );
 
 -- 勤務セグメントテーブル（新規）
-CREATE TABLE work_segment (
+CREATE TABLE work_segments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     summary_id INT NOT NULL,
     employee_id INT NOT NULL,
     store_id INT NOT NULL,
-    start_time DATETIME NOT NULL,
-    end_time DATETIME,
+    start_time TIMESTAMP NOT NULL,
+    end_time TIMESTAMP,
     status_id int,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (summary_id) REFERENCES daily_work_summarie(summary_id),
+    FOREIGN KEY (employee_id) REFERENCES employees(employee_id)
     FOREIGN KEY (store_id) REFERENCES store(store_id)
 );
 
 -- 休憩記録テーブル
-CREATE TABLE break_record (
+CREATE TABLE break_records (
     break_id INT AUTO_INCREMENT PRIMARY KEY,
     summary_id INT NOT NULL,
-    break_start DATETIME NOT NULL,
-    break_end DATETIME,
+    break_start TIMESTAMP NOT NULL,
+    break_end TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (summary_id) REFERENCES daily_work_summarie(summary_id)

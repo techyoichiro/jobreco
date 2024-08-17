@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"time"
+
 	model "github.com/techyoichiro/jobreco/backend/domain/models"
 	"gorm.io/gorm"
 )
@@ -13,8 +15,10 @@ func NewEmployeeRepository(db *gorm.DB) *EmployeeRepositoryImpl {
 	return &EmployeeRepositoryImpl{DB: db}
 }
 
-func (r *EmployeeRepositoryImpl) FindByLoginID(loginID string) (*model.Employee, error) {
+// ログイン
+func (r *EmployeeRepositoryImpl) FindEmpByLoginID(loginID string) (*model.Employee, error) {
 	var employee model.Employee
+	// ログインIDに紐づくユーザーを取得
 	if err := r.DB.Where("login_id = ?", loginID).First(&employee).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, nil
@@ -24,6 +28,27 @@ func (r *EmployeeRepositoryImpl) FindByLoginID(loginID string) (*model.Employee,
 	return &employee, nil
 }
 
-func (r *EmployeeRepositoryImpl) Create(employee *model.Employee) error {
+// ユーザー作成
+func (r *EmployeeRepositoryImpl) CreateEmp(employee *model.Employee) error {
 	return r.DB.Create(employee).Error
+}
+
+// ステータス取得
+func (r *EmployeeRepositoryImpl) GetStatusByEmpID(employeeID uint) (int, error) {
+	var workSegment model.WorkSegment
+
+	// 現在の日本時間を取得
+	jst, _ := time.LoadLocation("Asia/Tokyo")
+	today := time.Now().In(jst).Format("2006-01-02")
+
+	// 従業員IDに紐づいた今日のステータスを取得
+	if err := r.DB.Where("employee_id = ? AND DATE(created_at) = ?", employeeID, today).
+		Order("created_at DESC").
+		First(&workSegment).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return 0, nil // レコードが見つからない場合は 0 を返す
+		}
+		return 0, err
+	}
+	return workSegment.StatusID, nil
 }

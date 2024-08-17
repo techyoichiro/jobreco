@@ -48,16 +48,26 @@ func (ac *AuthController) PostLogin(c *gin.Context) {
 		return
 	}
 
+	// ログイン処理
 	emp, err := ac.service.Login(request.LoginID, request.Password)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
+	// ログインユーザーに紐づく status_id を取得
+	statusID, err := ac.service.GetStatusByEmpID(emp.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve status ID"})
+		return
+	}
+
+	// ユーザー情報と status_id を返す
 	c.JSON(http.StatusOK, gin.H{
 		"employee": gin.H{
 			"ID":   emp.ID,
 			"Name": emp.Name,
 		},
+		"status_id": statusID,
 	})
 }

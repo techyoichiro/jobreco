@@ -6,12 +6,29 @@ import (
 	"gorm.io/gorm"
 )
 
-type Attendance struct {
+type DailyWorkSummary struct {
 	gorm.Model
-	SummaryID  int       `gorm:"not null"`
-	EmployeeID int       `gorm:"not null"`
-	StoreID    int       `gorm:"not null"`
-	StartTime  time.Time `gorm:"not null"`
-	EndTime    time.Time `gorm:"not null"`
-	StatusID   int       `gorm:"not null"`
+	EmployeeID     uint       `gorm:"not null;index"`
+	WorkDate       time.Time  `gorm:"type:date;not null"`
+	StartTime      time.Time  `gorm:"type:timestamp;not null"`
+	EndTime        *time.Time `gorm:"type:timestamp"`
+	TotalWorkTime  float64    `gorm:"type:decimal(4,2);not null;default:0"` // 総勤務時間（分）
+	TotalBreakTime float64    `gorm:"type:decimal(4,2);not null;default:0"` // 総休憩時間（分）
+}
+
+type WorkSegment struct {
+	gorm.Model
+	SummaryID  uint       `gorm:"not null"`
+	EmployeeID uint       `gorm:"not null"`
+	StoreID    uint       `gorm:"not null"`
+	StartTime  time.Time  `gorm:"type:timestamp;not null"`
+	EndTime    *time.Time `gorm:"type:timestamp"`
+	StatusID   int        `gorm:"index"`
+}
+
+type BreakRecord struct {
+	gorm.Model
+	SummaryID  uint       `gorm:"not null"`
+	BreakStart time.Time  `gorm:"type:timestamp;not null"`
+	BreakEnd   *time.Time `gorm:"type:timestamp"`
 }
