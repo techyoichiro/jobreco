@@ -22,6 +22,7 @@ const AttendanceScreen: React.FC = () => {
   const [location, setLocation] = useState('0'); // 初期値を '0' に変更
   const [userName, setUserName] = useState<string | null>(null);
   const [statusID, setStatusID] = useState<number>(0);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -47,22 +48,25 @@ const AttendanceScreen: React.FC = () => {
   };
 
   const handleStatusChange = async (Stamp: string) => {
-  
+    setErrorMessage(null); // 新しいリクエスト前にエラーメッセージをリセット
     const storeID = parseInt(location, 10);
     try {
       const response = await axios.post(`http://localhost:8080/attendance/${Stamp}`, {
         employee_id: parseInt(localStorage.getItem('empID') || "0", 10),
-        store_id: storeID, // storeID をリクエストデータに追加
+        store_id: storeID,
       });
-  
+
       if (response.status === 200) {
         const { data } = response;
-        setStatusID(data.statusID);  // statusID を更新
-        setStatus(statusMap[data.statusID] || '未出勤'); // statusMap からステータス名を取得
-        localStorage.setItem('statusID', data.statusID.toString()); // statusID をローカルストレージに保存
+        setStatusID(data.statusID);
+        setStatus(statusMap[data.statusID] || '未出勤');
+        localStorage.setItem('statusID', data.statusID.toString());
       }
     } catch (error) {
       console.error('Error updating status:', error);
+      if (axios.isAxiosError(error) && error.response) {
+        setErrorMessage(error.response.data.error);
+      }
     }
   };
 
@@ -84,6 +88,11 @@ const AttendanceScreen: React.FC = () => {
           <div className="text-4xl font-bold text-center mb-4">
             {formatTime(currentTime)}
           </div>
+          {errorMessage && ( // エラーメッセージがある場合に表示
+            <div className="text-xl font-bold text-center mb-4 text-red-600">
+              {errorMessage}
+            </div>
+          )}
           <div className="flex items-center font-bold">
             <span>ステータス：{statusMap[statusID]}</span>
           </div>

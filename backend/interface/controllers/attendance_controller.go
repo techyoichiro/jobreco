@@ -41,6 +41,7 @@ func (ac *AttendanceController) PostClockIn(c *gin.Context) {
 func (ac *AttendanceController) PostClockOut(c *gin.Context) {
 	var req struct {
 		EmployeeID uint `json:"employee_id"`
+		StoreID    uint `json:"store_id"`
 	}
 
 	if err := c.BindJSON(&req); err != nil {
@@ -48,7 +49,7 @@ func (ac *AttendanceController) PostClockOut(c *gin.Context) {
 		return
 	}
 
-	if err := ac.service.ClockOut(req.EmployeeID); err != nil {
+	if err := ac.service.ClockOut(req.EmployeeID, req.StoreID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

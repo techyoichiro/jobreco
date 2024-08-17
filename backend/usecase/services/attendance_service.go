@@ -66,7 +66,7 @@ func (s *AttendanceService) ClockIn(employeeID uint, storeID uint) error {
 }
 
 // 退勤
-func (s *AttendanceService) ClockOut(employeeID uint) error {
+func (s *AttendanceService) ClockOut(employeeID uint, storeID uint) error {
 	now := time.Now().In(time.FixedZone("Asia/Tokyo", 9*60*60))
 	workDate := now.Format("2006-01-02")
 
@@ -86,6 +86,11 @@ func (s *AttendanceService) ClockOut(employeeID uint) error {
 		if latestSegment == nil || workSegments[i].StartTime.After(latestSegment.StartTime) {
 			latestSegment = &workSegments[i]
 		}
+	}
+
+	// リクエストの storeID と最新セグメントの StoreID が異なり、かつ StatusID が 3 以外の場合にエラーを返す
+	if latestSegment.StoreID != storeID && latestSegment.StatusID != 3 {
+		return fmt.Errorf("打刻する店舗が違います。")
 	}
 
 	latestSegment.EndTime = &now
@@ -136,6 +141,11 @@ func (s *AttendanceService) GoOut(employeeID uint, storeID uint) error {
 		return err
 	}
 
+	// StoreID が異なる場合にエラーを返す
+	if workSegment.StoreID != storeID {
+		return fmt.Errorf("打刻する店舗が違います。")
+	}
+
 	breakRecord := model.BreakRecord{
 		SummaryID:  summary.ID,
 		BreakStart: now,
@@ -144,25 +154,8 @@ func (s *AttendanceService) GoOut(employeeID uint, storeID uint) error {
 		return err
 	}
 
-	if workSegment.StoreID == storeID {
-		workSegment.StatusID = 2 // 外出
-		return s.repo.UpdateWorkSegment(workSegment)
-	}
-
-	// 店舗IDが異なる場合は新しいセグメントを作成
-	workSegment.EndTime = &now
-	if err := s.repo.UpdateWorkSegment(workSegment); err != nil {
-		return err
-	}
-
-	newWorkSegment := model.WorkSegment{
-		SummaryID:  summary.ID,
-		EmployeeID: employeeID,
-		StoreID:    storeID,
-		StartTime:  now,
-		StatusID:   1, // 出勤
-	}
-	return s.repo.CreateWorkSegment(&newWorkSegment)
+	workSegment.StatusID = 2 // 外出
+	return s.repo.UpdateWorkSegment(workSegment)
 }
 
 // 戻り
@@ -182,9 +175,7 @@ func (s *AttendanceService) Return(employeeID uint, storeID uint) error {
 		if err != nil {
 			return err
 		}
-		fmt.Println("ここ！！！！！:", workSegment.SummaryID)
 		for _, record := range breakRecords {
-			fmt.Println("Updating BreakEnd for record ID:", record.BreakEnd)
 			if record.BreakEnd == nil {
 				record.BreakEnd = &now
 				if err := s.repo.UpdateBreakRecord(&record); err != nil {
