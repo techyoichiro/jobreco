@@ -65,8 +65,9 @@ func (ac *AuthController) PostLogin(c *gin.Context) {
 	// ユーザー情報と status_id を返す
 	c.JSON(http.StatusOK, gin.H{
 		"employee": gin.H{
-			"ID":   emp.ID,
-			"Name": emp.Name,
+			"ID":     emp.ID,
+			"Name":   emp.Name,
+			"RoleID": emp.RoleID,
 		},
 		"status_id": statusID,
 	})

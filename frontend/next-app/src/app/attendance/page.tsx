@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import Link from 'next/link';
+import Button from '@/components/button';
 import '../../styles/globals.css';
 
 const statusMap: Record<number, string> = {
@@ -19,10 +21,11 @@ const storeMap: Record<number, string> = {
 const AttendanceScreen: React.FC = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [status, setStatus] = useState('未出勤');
-  const [location, setLocation] = useState('0'); // 初期値を '0' に変更
+  const [location, setLocation] = useState('0');
   const [userName, setUserName] = useState<string | null>(null);
   const [statusID, setStatusID] = useState<number>(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [employees, setEmployees] = useState<{ value: string, label: string }[]>([]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -31,6 +34,7 @@ const AttendanceScreen: React.FC = () => {
 
     const userName = localStorage.getItem('userName');
     const storedStatusID = localStorage.getItem('statusID');
+    const storedRoleID = localStorage.getItem('roleID');
 
     setUserName(userName);
 
@@ -48,7 +52,7 @@ const AttendanceScreen: React.FC = () => {
   };
 
   const handleStatusChange = async (Stamp: string) => {
-    setErrorMessage(null); // 新しいリクエスト前にエラーメッセージをリセット
+    setErrorMessage(null);
     const storeID = parseInt(location, 10);
     try {
       const response = await axios.post(`http://localhost:8080/attendance/${Stamp}`, {
@@ -70,14 +74,21 @@ const AttendanceScreen: React.FC = () => {
     }
   };
 
-  const getButtonClasses = (disabled: boolean) => {
-    return disabled
-      ? 'bg-gray-300 text-gray-500 border-gray-300 cursor-not-allowed'
-      : 'bg-white text-green-600 border border-green-600';
+  const fetchEmployees = async () => {
+    try {
+      const response = await axios.get('http://localhost:8080/summary/init');
+      if (response.status === 200) {
+        const employees = response.data;
+        // JSON.stringifyでオブジェクトを文字列に変換して保存
+        localStorage.setItem('employees', JSON.stringify(employees));
+      }
+    } catch (error) {
+      console.error('Error fetching employees:', error);
+    }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-custom-green">
+    <div className="flex items-center justify-center min-h-screen bg-custom-green p-4">
       <div className="bg-custom-cream rounded-lg shadow-lg p-8 w-96">
         <div className="text-center mb-4">
           <h2 className="text-gray-800 text-xl font-bold">
@@ -88,7 +99,7 @@ const AttendanceScreen: React.FC = () => {
           <div className="text-4xl font-bold text-center mb-4">
             {formatTime(currentTime)}
           </div>
-          {errorMessage && ( // エラーメッセージがある場合に表示
+          {errorMessage && (
             <div className="text-xl font-bold text-center mb-4 text-red-600">
               {errorMessage}
             </div>
@@ -99,48 +110,56 @@ const AttendanceScreen: React.FC = () => {
           <div className="mt-2">
             <select
               value={location}
-              onChange={(e) =>setLocation(e.target.value)}
+              onChange={(e) => setLocation(e.target.value)}
               className="w-1/3 p-2 text-gray-700 rounded-md"
             >
               {Object.entries(storeMap).map(([key, value]) => (
-                <option key={key}value={key}>{value}</option>
+                <option key={key} value={key}>{value}</option>
               ))}
             </select>
-
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4 mt-4">
-          <button
+          <Button
             onClick={() => handleStatusChange('clockin')}
-            className={`rounded-md py-2 ${getButtonClasses(statusID !== 0)}`}
+            variant="attendance"
             disabled={statusID !== 0}
           >
             出勤
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => handleStatusChange('clockout')}
-            className={`rounded-md py-2 ${getButtonClasses(statusID !== 1)}`}
+            variant="attendance"
             disabled={statusID !== 1}
           >
             退勤
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => handleStatusChange('goout')}
-            className={`rounded-md py-2 ${getButtonClasses(statusID !== 1)}`}
+            variant="attendance"
             disabled={statusID !== 1}
           >
             外出
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => handleStatusChange('return')}
-            className={`rounded-md py-2 ${getButtonClasses(statusID !== 2)}`}
+            variant="attendance"
             disabled={statusID !== 2}
           >
             戻り
-          </button>
+          </Button>
         </div>
+        
+          <div className="mt-4 text-center">
+            <Link href="/" className="text-blue-600 hover:text-blue-800 underline">
+              ログイン画面へ
+            </Link>
+            <Link href="/summary" className="ml-3 text-blue-600 hover:text-blue-800 underline" onClick={fetchEmployees}>
+              勤怠集計画面へ
+            </Link>
+          </div>
       </div>
-    </div>
+    </div> 
   );
 };
 

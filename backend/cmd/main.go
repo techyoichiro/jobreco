@@ -11,7 +11,7 @@ import (
 	"github.com/techyoichiro/jobreco/backend/usecase/services"
 )
 
-func initialize() (*gin.Engine, *controller.AuthController, *controller.AttendanceController) {
+func initialize() (*gin.Engine, *controller.AuthController, *controller.AttendanceController, *controller.SummaryController) {
 	// データベース接続の設定
 	db, err := database.ConnectionDB()
 	if err != nil {
@@ -21,22 +21,25 @@ func initialize() (*gin.Engine, *controller.AuthController, *controller.Attendan
 	// リポジトリの初期化
 	empRepo := repository.NewEmployeeRepository(db)
 	attendanceRepo := repository.NewAttendanceRepository(db)
+	summaryRepo := repository.NewSummaryRepository(db)
 
 	// サービス層の初期化
 	authService := services.NewAuthService(empRepo)
 	attendanceService := services.NewAttendanceService(attendanceRepo)
+	summaryService := services.NewSummaryService(summaryRepo)
 
 	// コントローラの初期化
 	authController := controller.NewAuthController(authService)
 	attendanceController := controller.NewAttendanceController(attendanceService)
+	summaryController := controller.NewSummaryController(summaryService)
 
 	// ルータの設定
-	engine := router.SetupRouter(authController, attendanceController)
-	return engine, authController, attendanceController
+	engine := router.SetupRouter(authController, attendanceController, summaryController)
+	return engine, authController, attendanceController, summaryController
 }
 
 func main() {
-	engine, _, _ := initialize()
+	engine, _, _, _ := initialize()
 
 	// サーバを8080ポートで起動
 	if err := engine.Run(":8080"); err != nil {

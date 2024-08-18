@@ -38,10 +38,8 @@ const SignUp: React.FC = () => {
       );
   
       if (response.status === 200) {
-        console.log('サインアップが成功しました');
         router.push('/');
       } else {
-        console.error('サインアップに失敗しました:', response.data);
         alert('サインアップに失敗しました: ' + response.data.error);
       }
     } catch (error: any) {

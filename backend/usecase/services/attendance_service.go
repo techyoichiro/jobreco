@@ -3,7 +3,6 @@ package services
 import (
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	model "github.com/techyoichiro/jobreco/backend/domain/models"
@@ -26,7 +25,6 @@ func (s *AttendanceService) ClockIn(employeeID uint, storeID uint) error {
 
 	summary, err := s.repo.FindDailyWorkSummary(employeeID, workDate)
 	if err != nil {
-		log.Printf("Error finding DailyWorkSummary: %v", err)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			summary = &model.DailyWorkSummary{
 				EmployeeID:     employeeID,
@@ -36,13 +34,11 @@ func (s *AttendanceService) ClockIn(employeeID uint, storeID uint) error {
 				TotalBreakTime: 0,
 			}
 			if err := s.repo.CreateDailyWorkSummary(summary); err != nil {
-				log.Printf("Failed to create DailyWorkSummary: %v", err)
 				return err
 			}
 
 			summary, err = s.repo.FindDailyWorkSummary(employeeID, workDate)
 			if err != nil {
-				log.Printf("Failed to retrieve created DailyWorkSummary: %v", err)
 				return err
 			}
 		} else {
@@ -119,10 +115,14 @@ func (s *AttendanceService) ClockOut(employeeID uint, storeID uint) error {
 	workDuration := latestSegment.EndTime.Sub(earliestSegment.StartTime)
 	totalWorkTime := workDuration - totalBreakTime
 
+	// 15分単位で切り下げる処理
+	const roundTo = 15 * time.Minute
+	totalWorkTimeTruncated := totalWorkTime.Truncate(roundTo)
+
 	summary.StartTime = earliestSegment.StartTime
 	summary.EndTime = latestSegment.EndTime
-	summary.TotalBreakTime += totalBreakTime.Seconds() / 3600 // hours
-	summary.TotalWorkTime = totalWorkTime.Seconds() / 3600    // hours
+	summary.TotalBreakTime += totalBreakTime.Seconds() / 3600       // hours
+	summary.TotalWorkTime = totalWorkTimeTruncated.Seconds() / 3600 // hours
 	return s.repo.UpdateDailyWorkSummary(summary)
 }
 

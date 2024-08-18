@@ -28,17 +28,17 @@ const LogIn: React.FC = () => {
         });
 
         if (response.status === 200) {
-            console.log('ログイン成功', response.data.employee.Name);
             localStorage.setItem('empID', response.data.employee.ID.toString());
             localStorage.setItem('userName', response.data.employee.Name);
             localStorage.setItem('statusID', response.data.status_id.toString());
-            router.push('/attendance'); // ログイン成功後に attendance 画面へ遷移
+            localStorage.setItem('roleID', response.data.employee.RoleID.toString());
+            router.push('/attendance');
         } else {
             setError('ログインに失敗しました。入力情報を確認してください。');
         }
     } catch (error: any) {
         console.error('ログインエラー:', error);
-        setError('ログインに失敗しました。入力情報を確認してください。'); // エラーメッセージを設定
+        setError('ログインに失敗しました。入力情報を確認してください。');
     }
 };
 
