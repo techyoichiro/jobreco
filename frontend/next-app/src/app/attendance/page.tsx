@@ -14,14 +14,14 @@ const statusMap: Record<number, string> = {
 };
 
 const storeMap: Record<number, string> = {
-  0: '我家',
-  1: 'Ate',
+  1: '我家',
+  2: 'Ate',
 };
 
 const AttendanceScreen: React.FC = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [status, setStatus] = useState('未出勤');
-  const [location, setLocation] = useState('0');
+  const [location, setLocation] = useState('1');
   const [userName, setUserName] = useState<string | null>(null);
   const [statusID, setStatusID] = useState<number>(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -34,7 +34,6 @@ const AttendanceScreen: React.FC = () => {
 
     const userName = localStorage.getItem('userName');
     const storedStatusID = localStorage.getItem('statusID');
-    const storedRoleID = localStorage.getItem('roleID');
 
     setUserName(userName);
 

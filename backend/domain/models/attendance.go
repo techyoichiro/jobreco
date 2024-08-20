@@ -8,12 +8,14 @@ import (
 
 type DailyWorkSummary struct {
 	gorm.Model
-	EmployeeID     uint       `gorm:"not null;index"`
-	WorkDate       time.Time  `gorm:"type:date;not null"`
-	StartTime      time.Time  `gorm:"type:timestamp;not null"`
-	EndTime        *time.Time `gorm:"type:timestamp"`
-	TotalWorkTime  float64    `gorm:"type:decimal(4,2);not null;default:0"` // 総勤務時間（分）
-	TotalBreakTime float64    `gorm:"type:decimal(4,2);not null;default:0"` // 総休憩時間（分）
+	EmployeeID     uint          `gorm:"not null;index"`
+	WorkDate       time.Time     `gorm:"type:date;not null"`
+	StartTime      time.Time     `gorm:"type:timestamp;not null"`
+	EndTime        *time.Time    `gorm:"type:timestamp"`
+	TotalWorkTime  float64       `gorm:"type:decimal(4,2);not null;default:0"` // 総勤務時間（分）
+	TotalBreakTime float64       `gorm:"type:decimal(4,2);not null;default:0"` // 総休憩時間（分）
+	WorkSegments   []WorkSegment `gorm:"foreignkey:SummaryID"`
+	BreakRecords   []BreakRecord `gorm:"foreignKey:SummaryID"`
 }
 
 type WorkSegment struct {
