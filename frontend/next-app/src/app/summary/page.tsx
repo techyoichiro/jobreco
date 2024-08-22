@@ -33,30 +33,30 @@ const AttendanceRecordList: React.FC = () => {
   const [roleID, setRoleID] = useState<number | null>(null);
 
   useEffect(() => {
-    // Retrieve roleID from localStorage
+    // 役割ID取得
     const storedRoleID = localStorage.getItem('roleID');
     if (storedRoleID) {
       const roleID = Number(storedRoleID);
       setRoleID(roleID);
 
-      // If roleID is '2', set the selectedEmployee from localStorage
+      // 一般権限従業員の場合従業員IDを自動で設定
       if (roleID === 2) {
         const storedEmployeeID = localStorage.getItem('empID');
         if (storedEmployeeID) {
           setSelectedEmployee(storedEmployeeID);
         }
+      } else {
+        // ローカルストレージに従業員IDと名前を保存
+        const storedEmployees = localStorage.getItem('employees');
+        if (storedEmployees) {
+          const parsedEmployees = JSON.parse(storedEmployees);
+          const formattedEmployees = parsedEmployees.map((employee: { id: number, name: string }) => ({
+            value: employee.id.toString(),
+            label: employee.name,
+          }));
+          setEmployees(formattedEmployees);
+        }
       }
-    }
-
-    // Retrieve employees from localStorage
-    const storedEmployees = localStorage.getItem('employees');
-    if (storedEmployees) {
-      const parsedEmployees = JSON.parse(storedEmployees);
-      const formattedEmployees = parsedEmployees.map((employee: { id: number, name: string }) => ({
-        value: employee.id.toString(),
-        label: employee.name,
-      }));
-      setEmployees(formattedEmployees);
     }
   }, []);
 

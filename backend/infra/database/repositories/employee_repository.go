@@ -52,3 +52,17 @@ func (r *EmployeeRepositoryImpl) GetStatusByEmpID(employeeID uint) (int, error) 
 	}
 	return workSegment.StatusID, nil
 }
+
+// ログインID取得
+func (r *EmployeeRepositoryImpl) GetLoginIDByEmpID(employeeID string) (string, error) {
+	var employee model.Employee
+
+	// 従業員IDに紐づいたログインIDを取得
+	if err := r.DB.Where("id = ?", employeeID).First(&employee).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return "", nil
+		}
+		return "", err
+	}
+	return employee.LoginID, nil
+}

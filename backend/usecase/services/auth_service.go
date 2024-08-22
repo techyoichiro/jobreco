@@ -78,3 +78,12 @@ func (s *AuthService) GetStatusByEmpID(employeeID uint) (int, error) {
 	}
 	return statusID, nil
 }
+
+// employee_id に紐づく login_id を取得
+func (s *AuthService) GetLoginIDByEmpID(employeeID string) (string, error) {
+	loginID, err := s.repo.GetLoginIDByEmpID(employeeID)
+	if err != nil {
+		return "", err
+	}
+	return loginID, nil
+}

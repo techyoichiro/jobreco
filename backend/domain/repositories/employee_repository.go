@@ -9,4 +9,5 @@ type EmployeeRepository interface {
 	FindEmpByLoginID(loginID string) (*model.Employee, error)
 	CreateEmp(employee *model.Employee) error
 	GetStatusByEmpID(employeeID uint) (int, error)
+	GetLoginIDByEmpID(employeeID string) (string, error)
 }
