@@ -37,6 +37,8 @@ func SetupRouter(authController *controller.AuthController, attendanceController
 	{
 		summaryRouter.GET("/init", summaryController.GetAllEmployee)
 		summaryRouter.GET("/:employeeId/:year/:month", summaryController.GetSummary)
+		summaryRouter.GET("/edit/:summaryID", summaryController.GetSummaryBySummaryID)
+		// summaryRouter.POST("/edit/:segmentID", summaryController.UpdateSummaryBySegmentID)
 	}
 
 	return router

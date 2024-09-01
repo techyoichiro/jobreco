@@ -115,8 +115,8 @@ func (s *AttendanceService) ClockOut(employeeID uint, storeID uint) error {
 	workDuration := latestSegment.EndTime.Sub(earliestSegment.StartTime)
 	totalWorkTime := workDuration - totalBreakTime
 
-	// 15分単位で切り下げる処理
-	const roundTo = 15 * time.Minute
+	// 5分単位で切り下げる処理
+	const roundTo = 5 * time.Minute
 	totalWorkTimeTruncated := totalWorkTime.Truncate(roundTo)
 
 	summary.StartTime = earliestSegment.StartTime

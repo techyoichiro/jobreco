@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"errors"
+
 	model "github.com/techyoichiro/jobreco/backend/domain/models"
 	"gorm.io/gorm"
 )
@@ -26,9 +28,9 @@ func (r *SummaryRepositoryImpl) GetAllEmployee() ([]model.Employee, error) {
 func (r *SummaryRepositoryImpl) GetSummary(employeeID uint, year int, month int) ([]model.DailyWorkSummary, error) {
 	var summaries []model.DailyWorkSummary
 
-	// PreloadでBreakRecordsとWorkSegmentsをロード
+	// 休憩記録と勤怠セグメントをロード
 	err := r.DB.Preload("BreakRecords").
-		Preload("WorkSegments"). // WorkSegmentsもロード
+		Preload("WorkSegments").
 		Where("employee_id = ? AND EXTRACT(YEAR FROM work_date) = ? AND EXTRACT(MONTH FROM work_date) = ?", employeeID, year, month).
 		Find(&summaries).Error
 	if err != nil {
@@ -44,7 +46,7 @@ func (r *SummaryRepositoryImpl) GetSummary(employeeID uint, year int, month int)
 		return nil, err
 	}
 
-	// WorkSegmentsをマップに追加
+	// 勤怠セグメントをマップに追加
 	for _, segment := range workSegments {
 		if _, exists := workSegmentMap[segment.SummaryID]; !exists {
 			workSegmentMap[segment.SummaryID] = []model.WorkSegment{}
@@ -62,7 +64,7 @@ func (r *SummaryRepositoryImpl) GetSummary(employeeID uint, year int, month int)
 	return summaries, nil
 }
 
-// GetWorkSegments 指定した勤怠記録のセグメントを取得するリポジトリメソッド
+// 指定した勤怠記録のセグメントを取得するリポジトリメソッド
 func (r *SummaryRepositoryImpl) GetWorkSegments(summaryID uint) []model.WorkSegment {
 	var segments []model.WorkSegment
 	r.DB.Where("summary_id = ?", summaryID).Find(&segments)
@@ -76,4 +78,92 @@ func (r *SummaryRepositoryImpl) GetHourlyPay(employeeID uint) (int, error) {
 		return 0, err
 	}
 	return employee.HourlyPay, nil
+}
+
+// サマリIDから勤怠情報を取得する
+func (r *SummaryRepositoryImpl) GetSummaryBySummaryID(summaryID uint) (*model.DailyWorkSummary, error) {
+	var summary model.DailyWorkSummary
+
+	// 休憩記録と勤怠セグメントをロード
+	err := r.DB.Preload("BreakRecords").
+		Preload("WorkSegments").
+		Where("id = ?", summaryID).
+		First(&summary).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &summary, nil
+}
+
+// UpdateSummary 勤怠記録を更新するリポジトリメソッド
+func (r *SummaryRepositoryImpl) UpdateSummary(summary *model.DailyWorkSummary) error {
+	// Begin a new transaction
+	tx := r.DB.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	// Update the DailyWorkSummary
+	if err := tx.Save(summary).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// Commit the transaction
+	return tx.Commit().Error
+}
+
+// サマリIDから勤怠セグメントを取得する
+func (r *SummaryRepositoryImpl) FindWorkSegmentsBySummaryID(summaryID uint) ([]model.WorkSegment, error) {
+	var segments []model.WorkSegment
+
+	//
+	err := r.DB.Where("summary_id = ?", summaryID).Find(&segments).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return segments, nil
+}
+
+func (r *SummaryRepositoryImpl) FindBreakRecords(summaryID uint) (*model.BreakRecord, error) {
+	var breakRecord model.BreakRecord
+	// レコードが見つからない場合に nil を返すために First を使用
+	err := r.DB.Where("summary_id = ?", summaryID).First(&breakRecord).Error
+	if err != nil {
+		// レコードが存在しない場合は nil を返す
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &breakRecord, nil
+}
+
+func (repo *SummaryRepositoryImpl) FindSummaryBySegmentID(segmentID uint) (*model.DailyWorkSummary, error) {
+	var summary model.DailyWorkSummary
+	err := repo.DB.Joins("JOIN work_segments ON work_segments.summary_id = daily_work_summaries.id").
+		Where("work_segments.id = ?", segmentID).First(&summary).Error
+	if err != nil {
+		return nil, err
+	}
+	return &summary, nil
+}
+
+func (repo *SummaryRepositoryImpl) UpdateWorkSegment(segment *model.WorkSegment) error {
+	return repo.DB.Save(segment).Error
+}
+
+func (repo *SummaryRepositoryImpl) UpdateBreakRecord(breakRecord *model.BreakRecord) error {
+	return repo.DB.Save(breakRecord).Error
+}
+
+func (r *SummaryRepositoryImpl) FindWorkSegmentByID(ID uint) ([]model.WorkSegment, error) {
+	var segments []model.WorkSegment
+	if err := r.DB.Where("id = ?", ID).Find(&segments).Error; err != nil {
+		return nil, err
+	}
+	return segments, nil
 }

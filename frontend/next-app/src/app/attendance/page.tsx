@@ -25,7 +25,6 @@ const AttendanceScreen: React.FC = () => {
   const [userName, setUserName] = useState<string | null>(null);
   const [statusID, setStatusID] = useState<number>(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [employees, setEmployees] = useState<{ value: string, label: string }[]>([]);
 
   useEffect(() => {
     const timer = setInterval(() => {

@@ -31,6 +31,6 @@ type WorkSegment struct {
 type BreakRecord struct {
 	gorm.Model
 	SummaryID  uint       `gorm:"not null"`
-	BreakStart time.Time  `gorm:"type:timestamp;not null"`
+	BreakStart time.Time  `gorm:"type:timestamp"`
 	BreakEnd   *time.Time `gorm:"type:timestamp"`
 }

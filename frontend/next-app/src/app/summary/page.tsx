@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Button from '@/components/button';
 import Select from '@/components/select';
 import '@/styles/globals.css';
-import { formatDate, formatTime } from '@/utils/formatter';
 
 interface BreakRecordResponse {
   BreakStart: string;
@@ -13,6 +13,7 @@ interface BreakRecordResponse {
 }
 
 interface AttendanceRecord {
+  ID: number;
   WorkDate: string;
   StartTime: string;
   EndTime: string | null;
@@ -31,47 +32,11 @@ const AttendanceRecordList: React.FC = () => {
   const [employees, setEmployees] = useState<{ value: string, label: string }[]>([]);
   const [isSearched, setIsSearched] = useState<boolean>(false);
   const [roleID, setRoleID] = useState<number | null>(null);
+  const [initialLoad, setInitialLoad] = useState(true);
+  const router = useRouter();
 
-  useEffect(() => {
-    // 役割ID取得
-    const storedRoleID = localStorage.getItem('roleID');
-    if (storedRoleID) {
-      const roleID = Number(storedRoleID);
-      setRoleID(roleID);
-
-      // 一般権限従業員の場合従業員IDを自動で設定
-      if (roleID === 2) {
-        const storedEmployeeID = localStorage.getItem('empID');
-        if (storedEmployeeID) {
-          setSelectedEmployee(storedEmployeeID);
-        }
-      } else {
-        // ローカルストレージに従業員IDと名前を保存
-        const storedEmployees = localStorage.getItem('employees');
-        if (storedEmployees) {
-          const parsedEmployees = JSON.parse(storedEmployees);
-          const formattedEmployees = parsedEmployees.map((employee: { id: number, name: string }) => ({
-            value: employee.id.toString(),
-            label: employee.name,
-          }));
-          setEmployees(formattedEmployees);
-        }
-      }
-    }
-  }, []);
-
-  const handleSearch = async () => {
-    // Check if all required fields have values
-    if (!selectedEmployee) {
-      alert('従業員を選択してください');
-      return;
-    }
-    if (!selectedYear) {
-      alert('年を選択してください');
-      return;
-    }
-    if (!selectedMonth) {
-      alert('月を選択してください');
+  const handleSearch = useCallback(async () => {
+    if (!selectedEmployee || !selectedYear || !selectedMonth) {
       return;
     }
 
@@ -87,14 +52,15 @@ const AttendanceRecordList: React.FC = () => {
       }
 
       const formattedData = data.map(record => ({
-        WorkDate: formatDate(record.WorkDate),
-        StartTime: formatTime(record.StartTime),
-        EndTime: record.EndTime ? formatTime(record.EndTime) : '-',
+        ID: record.ID,
+        WorkDate: record.WorkDate,
+        StartTime: record.StartTime,
+        EndTime: record.EndTime ? record.EndTime : '-',
         TotalWorkTime: record.TotalWorkTime,
         BreakRecords: record.BreakRecords
           ? record.BreakRecords.map(breakRecord => ({
-              BreakStart: breakRecord.BreakStart ? formatTime(breakRecord.BreakStart) : '-',
-              BreakEnd: breakRecord.BreakEnd ? formatTime(breakRecord.BreakEnd) : '-',
+              BreakStart: breakRecord.BreakStart ? breakRecord.BreakStart : '-',
+              BreakEnd: breakRecord.BreakEnd ? breakRecord.BreakEnd : '-',
             }))
           : [],
         Overtime: record.Overtime,
@@ -104,6 +70,76 @@ const AttendanceRecordList: React.FC = () => {
 
       setAttendanceRecords(formattedData);
       setIsSearched(true);
+
+      // ローカルストレージの更新
+      localStorage.setItem('selectedEmployee', selectedEmployee);
+      localStorage.setItem('selectedYear', selectedYear);
+      localStorage.setItem('selectedMonth', selectedMonth);
+      localStorage.setItem('isSearched', 'true');
+      localStorage.setItem('attendanceRecords', JSON.stringify(formattedData));
+    } catch (error) {
+      console.error('Fetch error:', error);
+    }
+  }, [selectedEmployee, selectedYear, selectedMonth]);
+
+  useEffect(() => {
+    if (initialLoad) {
+      const now = new Date();
+      const currentYear = now.getFullYear().toString();
+      const currentMonth = (now.getMonth() + 1).toString();
+
+      // ローカルストレージから値を取得（初回のみ）
+      const storedEmployee = localStorage.getItem('selectedEmployee') || '';
+      const storedYear = localStorage.getItem('selectedYear') || currentYear;
+      const storedMonth = localStorage.getItem('selectedMonth') || currentMonth;
+      const storedIsSearched = localStorage.getItem('isSearched') === 'true';
+      const storedAttendanceRecords = JSON.parse(localStorage.getItem('attendanceRecords') || '[]');
+
+      setSelectedEmployee(storedEmployee);
+      setSelectedYear(storedYear);
+      setSelectedMonth(storedMonth);
+      setIsSearched(storedIsSearched);
+      setAttendanceRecords(storedAttendanceRecords);
+
+      // 役割ID取得と従業員情報の設定
+      const storedRoleID = localStorage.getItem('roleID');
+      if (storedRoleID) {
+        const roleID = Number(storedRoleID);
+        setRoleID(roleID);
+
+        if (roleID === 2) {
+          const storedEmployeeID = localStorage.getItem('empID');
+          if (storedEmployeeID) {
+            setSelectedEmployee(storedEmployeeID);
+          }
+        } else {
+          const storedEmployees = localStorage.getItem('employees');
+          if (storedEmployees) {
+            const parsedEmployees = JSON.parse(storedEmployees);
+            const formattedEmployees = parsedEmployees.map((employee: { id: number, name: string }) => ({
+              value: employee.id.toString(),
+              label: employee.name,
+            }));
+            setEmployees(formattedEmployees);
+          }
+        }
+      }
+
+      setInitialLoad(false);
+    } else if (isSearched) {
+      handleSearch();
+    }
+  }, [handleSearch, initialLoad, isSearched]);
+
+  const handleDateClick = async (summaryID: number) => {
+    try {
+      const response = await fetch(`http://localhost:8080/summary/edit/${summaryID}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch summary data');
+      }
+      localStorage.setItem('editSummaryID', summaryID.toString());
+      
+      router.push(`/summary/edit`);
     } catch (error) {
       console.error('Fetch error:', error);
     }
@@ -205,7 +241,11 @@ const AttendanceRecordList: React.FC = () => {
             <tbody>
               {attendanceRecords.map((record, index) => (
                 <tr key={index}>
-                  <td className="border border-gray-300 p-2 text-gray-800">{record.WorkDate}</td>
+                  <td className="border border-gray-300 p-2 text-blue-600 hover:text-blue-800">
+                    <Link href="#" onClick={() => handleDateClick(record.ID)}>
+                      {record.WorkDate}
+                    </Link>
+                  </td>
                   <td className="border border-gray-300 p-2 text-gray-800">{record.StartTime}</td>
                   <td className="border border-gray-300 p-2 text-gray-800">
                     {record.BreakRecords && record.BreakRecords.length > 0
